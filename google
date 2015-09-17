@@ -1,0 +1,95 @@
+#!/usr/bin/python2
+
+import sys
+import termios, fcntl, struct
+import webbrowser
+from bs4 import BeautifulSoup
+from urllib import quote_plus
+from httplib import HTTPConnection
+import argparse
+
+winsz = fcntl.ioctl(sys.stdout, termios.TIOCGWINSZ, "1234")
+columns = struct.unpack("HH", winsz)[1]
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-s', '--start', help='start at the Nth result', type=int,
+                       default=0)
+    parser.add_argument('-n', '--number', help='show N results', type=int,
+                       default=5)
+    parser.add_argument('-l', '--language', help='search by language', default=None)
+    parser.add_argument('--no-color',
+                        help='disable color output', action='store_true')
+    parser.add_argument('-o', '--open',
+                        help='open the first result with browser',
+                        action='store_true')
+    parser.add_argument('-r', '--reverse', help='output in reversed order, to work with URL selecter in tmux/urxvt',
+                       action='store_true')
+    parser.add_argument('query', help='query', nargs='+')
+    global args
+    args = parser.parse_args()
+
+def parse_google(html):
+    soup = BeautifulSoup(html, 'html.parser')
+    results = soup.findAll('li', attrs={'class':'g'})
+
+    def parse_item(item):
+        a = item.find('a')
+        url = a.attrs['href'][7:]
+        title = a.text
+        st = item.find('span', attrs={'class': 'st'})
+        text = st.text
+        return url, title, text
+    return [parse_item(i) for i in results]
+
+# from github:henux/cli-google
+def print_entry(url, title, text):
+    if not args.no_color:
+        print "\x1B[96m* \x1B[92m%s\n\x1B[93m%s\x1B[39m" % (title, url)
+    else:
+        print "* %s\n%s" % (title, url)
+    # Print the text with truncating.
+    col = 0
+    for w in text.split():
+        if (col + len(w) + 1) > columns:
+            col = 0
+            print
+        print w,
+        col += len(w) + 1
+    print
+    print
+
+if __name__ == '__main__':
+    parse_args()
+    query = '+'.join([quote_plus(k) for k in args.query])
+
+    # build URL
+    url = "http://www.google.com/search?"
+    if args.start != None:
+        url += "start={}&".format(args.start)
+    if args.number != None:
+        url += "num={}&".format(args.number)
+    if args.language != None:
+        url += "hl={}&".format(args.language)
+    url += "q={}".format(query)
+    print(url)
+    print
+
+    # connect
+    conn = HTTPConnection("www.google.com")
+    conn.request("GET", url)
+    resp = conn.getresponse()
+    if resp.status != 200:
+        print "Server responded with an error:", str(resp.status)
+        sys.exit(1)
+    html = resp.read()
+    conn.close()
+
+    # parse
+    results = parse_google(html)
+    if args.open:
+        webbrowser.open(results[0][0])
+    if args.reverse:
+        results = reversed(results)
+    for (url, title, text) in results:
+        print_entry(url, title, text)
