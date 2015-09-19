@@ -22,3 +22,6 @@ optional arguments:
 Have `alias gg='google -r'` to have reversed output, and use a console-based URL selecter such as
 [tmux-url-select](https://github.com/dequis/tmux-url-select)
 or [urxvt-url-select](https://github.com/muennich/urxvt-perls), to open any url.
+
+## Screenshot
+![screen](https://github.com/ppwwyyxx/googlecli/raw/master/screenshot.gif)

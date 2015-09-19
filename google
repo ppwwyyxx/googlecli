@@ -5,6 +5,7 @@ import termios, fcntl, struct
 import webbrowser
 from bs4 import BeautifulSoup
 from urllib import quote_plus
+from urlparse import parse_qs
 from httplib import HTTPConnection
 import argparse
 
@@ -35,7 +36,8 @@ def parse_google(html):
 
     def parse_item(item):
         a = item.find('a')
-        url = a.attrs['href'][7:]
+        url = a.attrs['href']
+        url = parse_qs(url[5:])['q'][0]
         title = a.text
         st = item.find('span', attrs={'class': 'st'})
         text = st.text
