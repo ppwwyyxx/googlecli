@@ -11,6 +11,11 @@ import argparse
 
 winsz = fcntl.ioctl(sys.stdout, termios.TIOCGWINSZ, "1234")
 columns = struct.unpack("HH", winsz)[1]
+headers = {
+    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36',
+    'accept':'accept:text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+    'accept-encoding': 'gzip'
+}
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -31,13 +36,18 @@ def parse_args():
     args = parser.parse_args()
 
 def parse_google(html):
+    print 'here'
     soup = BeautifulSoup(html, 'html.parser')
-    results = soup.findAll('li', attrs={'class':'g'})
+    print 'here'
+    results = soup.findAll('div', attrs={'class':'rc'})
 
     def parse_item(item):
         a = item.find('a')
         url = a.attrs['href']
-        url = parse_qs(url[5:])['q'][0]
+        if not url.startswith('/url'):
+            url = 'https:///google.com' + url
+        else:
+            url = parse_qs(url[5:])['q'][0]
         title = a.text
         st = item.find('span', attrs={'class': 'st'})
         text = st.text
@@ -66,7 +76,7 @@ if __name__ == '__main__':
     query = '+'.join([quote_plus(k) for k in args.query])
 
     # build URL
-    url = "http://www.google.com/search?"
+    url = "http://www.google.com/search?gws_rd=ssl&"
     if args.start != None:
         url += "start={}&".format(args.start)
     if args.number != None:
@@ -79,13 +89,16 @@ if __name__ == '__main__':
 
     # connect
     conn = HTTPConnection("www.google.com")
-    conn.request("GET", url)
+    conn.request("GET", url, headers=headers)
     resp = conn.getresponse()
     if resp.status != 200:
         print "Server responded with an error:", str(resp.status)
         sys.exit(1)
     html = resp.read()
-    conn.close()
+    if resp.getheader('content-encoding') == 'gzip':
+        import gzip, cStringIO
+        data = cStringIO.StringIO(html)
+        html = gzip.GzipFile(fileobj=data).read()
 
     # parse
     results = parse_google(html)
@@ -95,3 +108,4 @@ if __name__ == '__main__':
         results = reversed(results)
     for (url, title, text) in results:
         print_entry(url, title, text)
+    conn.close()
