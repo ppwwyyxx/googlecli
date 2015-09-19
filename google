@@ -22,7 +22,7 @@ def parse_args():
     parser.add_argument('--no-color',
                         help='disable color output', action='store_true')
     parser.add_argument('-o', '--open',
-                        help='open the first result with browser',
+                        help='open the first result with browser (feeling lucky)',
                         action='store_true')
     parser.add_argument('-r', '--reverse', help='output in reversed order, to work with URL selecter in tmux/urxvt',
                        action='store_true')

@@ -14,14 +14,16 @@ optional arguments:
   -l LANGUAGE, --language LANGUAGE
                         search by language
   --no-color            disable color output
-  -o, --open            open the first result with browser
+  -o, --open            open the first result with browser (feeling lucky)
   -r, --reverse         output in reversed order, to work with URL selecter in tmux/urxv
 ```
 
 ## Good Practice
-Have `alias gg='google -r'` to have reversed output, and use a console-based URL selecter such as
+Use `alias gg='google -r'` to have reversed output, and use a console-based URL selecter such as
 [tmux-url-select](https://github.com/dequis/tmux-url-select)
 or [urxvt-url-select](https://github.com/muennich/urxvt-perls), to open any url.
+
+Use `alias gl='google -o'` when you're feeling lucky.
 
 ## Screenshot
 ![screen](https://github.com/ppwwyyxx/googlecli/raw/master/screenshot.gif)
