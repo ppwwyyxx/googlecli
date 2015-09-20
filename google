@@ -6,14 +6,13 @@ import webbrowser
 from bs4 import BeautifulSoup, SoupStrainer
 from urllib import quote_plus
 from urlparse import parse_qs
-from httplib import HTTPConnection
+from httplib import HTTPSConnection
 import argparse
 
 winsz = fcntl.ioctl(sys.stdout, termios.TIOCGWINSZ, "1234")
 columns = struct.unpack("HH", winsz)[1]
 headers = {
     'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36',
-    'accept':'accept:text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
     'accept-encoding': 'gzip'
 }
 
@@ -36,13 +35,15 @@ def parse_args():
     args = parser.parse_args()
 
 def parse_google(html):
+    # desktop version (work with user-agent set)
     ss = SoupStrainer('div', attrs={'class': 'rc'})
-
     # to speed up
     start = html.find('--a--') + 6
     end = html.find('--z--', start) - 2
     if start > 10 and end > start:
         html = html[start:end]
+
+    #ss = SoupStrainer('li', attrs={'class': 'g'})  # plain version
     soup = BeautifulSoup(html, 'html.parser', parse_only=ss)
 
     def parse_item(item):
@@ -80,11 +81,12 @@ if __name__ == '__main__':
     query = '+'.join([quote_plus(k) for k in args.query])
 
     # build URL
-    url = "http://www.google.com/search?gws_rd=ssl&"
+    url = "https://www.google.com/search?"
     if args.start != None:
         url += "start={}&".format(args.start)
     if args.number != None:
-        url += "num={}&".format(args.number)
+        # request more
+        url += "num={}&".format(args.number + 2)
     if args.language != None:
         url += "hl={}&".format(args.language)
     url += "q={}".format(query)
@@ -92,7 +94,7 @@ if __name__ == '__main__':
     print
 
     # connect
-    conn = HTTPConnection("www.google.com")
+    conn = HTTPSConnection("www.google.com")
     conn.request("GET", url, headers=headers)
     resp = conn.getresponse()
     if resp.status != 200:
@@ -105,7 +107,7 @@ if __name__ == '__main__':
         html = gzip.GzipFile(fileobj=data).read()
 
     # parse
-    results = parse_google(html)
+    results = parse_google(html)[:args.number]
     if args.open:
         webbrowser.open(results[0][0])
     if args.reverse:
