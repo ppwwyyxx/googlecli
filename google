@@ -3,7 +3,7 @@
 import sys
 import termios, fcntl, struct
 import webbrowser
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, SoupStrainer
 from urllib import quote_plus
 from urlparse import parse_qs
 from httplib import HTTPConnection
@@ -36,10 +36,14 @@ def parse_args():
     args = parser.parse_args()
 
 def parse_google(html):
-    print 'here'
-    soup = BeautifulSoup(html, 'html.parser')
-    print 'here'
-    results = soup.findAll('div', attrs={'class':'rc'})
+    ss = SoupStrainer('div', attrs={'class': 'rc'})
+
+    # to speed up
+    start = html.find('--a--') + 6
+    end = html.find('--z--', start) - 2
+    if start > 10 and end > start:
+        html = html[start:end]
+    soup = BeautifulSoup(html, 'html.parser', parse_only=ss)
 
     def parse_item(item):
         a = item.find('a')
@@ -52,7 +56,7 @@ def parse_google(html):
         st = item.find('span', attrs={'class': 'st'})
         text = st.text
         return url, title, text
-    return [parse_item(i) for i in results]
+    return [parse_item(i) for i in soup]
 
 # from github:henux/cli-google
 def print_entry(url, title, text):
