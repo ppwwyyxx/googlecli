@@ -49,7 +49,7 @@ def parse_google(html):
     def parse_item(item):
         a = item.find('a')
         url = a.attrs['href']
-        print url
+        # plain version url handling
         #if not url.startswith('/url'):
             #url = 'https:///google.com' + url
         #else:
