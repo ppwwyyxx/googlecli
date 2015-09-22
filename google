@@ -49,10 +49,11 @@ def parse_google(html):
     def parse_item(item):
         a = item.find('a')
         url = a.attrs['href']
-        if not url.startswith('/url'):
-            url = 'https:///google.com' + url
-        else:
-            url = parse_qs(url[5:])['q'][0]
+        print url
+        #if not url.startswith('/url'):
+            #url = 'https:///google.com' + url
+        #else:
+            #url = parse_qs(url[5:])['q'][0]
         title = a.text
         st = item.find('span', attrs={'class': 'st'})
         text = st.text
