@@ -1,12 +1,17 @@
 #!/usr/bin/python2
 
+from __future__ import print_function
 import sys
 import termios, fcntl, struct
 import webbrowser
 from bs4 import BeautifulSoup, SoupStrainer
-from urllib import quote_plus
-from urlparse import parse_qs
-from httplib import HTTPSConnection
+import six
+from six.moves.urllib.parse import quote_plus, parse_qs
+from six.moves.http_client import HTTPSConnection
+if six.PY2:
+    from cStringIO import StringIO
+else:
+    from io import BytesIO as StringIO
 import argparse
 
 winsz = fcntl.ioctl(sys.stdout, termios.TIOCGWINSZ, "1234")
@@ -63,21 +68,21 @@ def parse_google(html):
 # from github:henux/cli-google
 def print_entry(url, title, text):
     if not args.no_color:
-        print "\x1B[96m* \x1B[92m%s\n\x1B[93m%s\x1B[39m" % (title, url)
+        print("\x1B[96m* \x1B[92m%s\n\x1B[93m%s\x1B[39m" % (title, url))
     else:
-        print "* %s\n%s" % (title, url)
+        print("* %s\n%s" % (title, url))
     # Print the text with truncating.
     col = 0
     for w in text.split():
         if (col + len(w) + 1) > columns:
             col = 0
-            print
-        print w,
+            print()
+        print(w, end='')
         col += len(w) + 1
-    print
-    print
+    print()
+    print()
 
-if __name__ == '__main__':
+def main():
     parse_args()
     query = '+'.join([quote_plus(k) for k in args.query])
 
@@ -92,19 +97,19 @@ if __name__ == '__main__':
         url += "hl={}&".format(args.language)
     url += "q={}".format(query)
     print(url)
-    print
+    print()
 
     # connect
     conn = HTTPSConnection("www.google.com")
     conn.request("GET", url, headers=headers)
     resp = conn.getresponse()
     if resp.status != 200:
-        print "Server responded with an error:", str(resp.status)
+        print("Server responded with an error:", str(resp.status))
         sys.exit(1)
     html = resp.read()
     if resp.getheader('content-encoding') == 'gzip':
-        import gzip, cStringIO
-        data = cStringIO.StringIO(html)
+        import gzip
+        data = StringIO(html)
         html = gzip.GzipFile(fileobj=data).read()
 
     # parse
@@ -116,3 +121,6 @@ if __name__ == '__main__':
     for (url, title, text) in results:
         print_entry(url, title, text)
     conn.close()
+
+if __name__ == '__main__':
+    main()
