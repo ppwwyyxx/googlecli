@@ -2,6 +2,11 @@
 
 A command line google search tool inspired by cli-google, with some improvements.
 
+## Install
+```
+pip install 'git+https://github.com/ppwwyyxx/googlecli.git'
+```
+
 ## Usage
 ```
 usage: google [-s START] [-n NUMBER] [-l LANGUAGE] [--no-color] [-o] [-r] query

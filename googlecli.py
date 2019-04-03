@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/env python
 
 from __future__ import print_function
 import sys
@@ -43,8 +43,8 @@ def parse_google(html):
     # desktop version (work with user-agent set)
     ss = SoupStrainer('div', attrs={'class': 'rc'})
     # to speed up
-    start = html.find('--a--') + 6
-    end = html.find('--z--', start) - 2
+    start = html.find(b'--a--') + 6
+    end = html.find(b'--z--', start) - 2
     if start > 10 and end > start:
         html = html[start:end]
 
@@ -77,7 +77,7 @@ def print_entry(url, title, text):
         if (col + len(w) + 1) > columns:
             col = 0
             print()
-        print(w, end='')
+        print(w, end=' ')
         col += len(w) + 1
     print()
     print()
