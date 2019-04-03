@@ -15,6 +15,6 @@ kwargs = dict(
   entry_points={
       'console_scripts': ['google = googlecli:main']
   },
-  install_requires=['beautifulsoup4']
+  install_requires=['beautifulsoup4', 'six']
 )
 setup(**kwargs)
